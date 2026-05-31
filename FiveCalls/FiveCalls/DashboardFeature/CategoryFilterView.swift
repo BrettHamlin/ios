@@ -25,7 +25,9 @@ struct CategoryFilterOption: Identifiable, Equatable {
             accessibilityIdentifier: "category-filter-all"
         )
 
-        return [allOption] + categories.map { category in
+        let sortedCategories = Array(Set(categories)).sorted()
+
+        return [allOption] + sortedCategories.map { category in
             CategoryFilterOption(
                 category: category,
                 label: category.name,
@@ -95,24 +97,27 @@ struct CategoryFilterView: View {
         accessibilityIdentifier: String,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline)
-                .fontWeight(isSelected ? .semibold : .regular)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .padding(.horizontal, 14)
-                .frame(minHeight: 44)
-                .foregroundColor(isSelected ? .white : Color.fivecallsDarkBlueText)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.fivecallsDarkBlue : Color(.systemGray6))
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(isSelected ? Color.fivecallsDarkBlue : Color.fivecallsLightGray, lineWidth: 1)
-                )
-        }
+        Button(
+            action: action,
+            label: {
+                Text(label)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 44)
+                    .foregroundColor(isSelected ? .white : Color.fivecallsDarkBlueText)
+                    .background(
+                        Capsule()
+                            .fill(isSelected ? Color.fivecallsDarkBlue : Color(.systemGray6))
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(isSelected ? Color.fivecallsDarkBlue : Color.fivecallsLightGray, lineWidth: 1)
+                    )
+            }
+        )
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityIdentifier(accessibilityIdentifier)

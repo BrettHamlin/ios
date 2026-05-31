@@ -4,20 +4,23 @@ import SwiftUI
 import XCTest
 @testable import FiveCalls
 
+private typealias IssueCategory = FiveCalls.Category
+
 final class IssueCategoryFilterTests: XCTestCase {
-    private let civilRights = Category(name: "Civil Rights")
-    private let environment = Category(name: "Environment")
-    private let healthcare = Category(name: "Healthcare")
+    private let civilRights = IssueCategory(name: "Civil Rights")
+    private let environment = IssueCategory(name: "Environment")
+    private let healthcare = IssueCategory(name: "Healthcare")
 
     func testAllChipIsFirst() {
         //harness:criterion=c-category-filter-view-exists,c-all-chip-always-first
         let view = CategoryFilterView(
-            categories: [environment, civilRights],
+            categories: [healthcare, environment, civilRights],
             selectedCategory: .constant(nil)
         )
 
         XCTAssertEqual(view.options.first?.label, "All")
         XCTAssertNil(view.options.first?.category)
+        XCTAssertEqual(view.options.dropFirst().map(\.category), [civilRights, environment, healthcare])
     }
 
     func testAllChipSelectedByDefault() {
@@ -29,6 +32,18 @@ final class IssueCategoryFilterTests: XCTestCase {
 
         XCTAssertTrue(options[0].isSelected)
         XCTAssertTrue(options.dropFirst().allSatisfy { !$0.isSelected })
+    }
+
+    func testSelectedCategoryOnlySelectsMatchingChip() {
+        //harness:criterion=c-all-chip-selected-by-default
+        let options = CategoryFilterOption.options(
+            categories: [civilRights, environment],
+            selectedCategory: environment
+        )
+
+        XCTAssertFalse(options[0].isSelected)
+        XCTAssertFalse(options[1].isSelected)
+        XCTAssertTrue(options[2].isSelected)
     }
 
     func testCategoryOptionsDedupAndSort() {
@@ -47,7 +62,7 @@ final class IssueCategoryFilterTests: XCTestCase {
 
     func testChipSelectionUpdatesState() {
         //harness:criterion=c-chip-selection-updates-state
-        var selectedCategory: Category?
+        var selectedCategory: IssueCategory?
         let options = CategoryFilterOption.options(
             categories: [civilRights, environment],
             selectedCategory: selectedCategory
@@ -60,7 +75,7 @@ final class IssueCategoryFilterTests: XCTestCase {
 
     func testAllChipSelectionClearsState() {
         //harness:criterion=c-all-chip-selection-clears-state
-        var selectedCategory: Category? = environment
+        var selectedCategory: IssueCategory? = environment
         let options = CategoryFilterOption.options(
             categories: [civilRights, environment],
             selectedCategory: selectedCategory
@@ -188,16 +203,17 @@ final class IssueCategoryFilterTests: XCTestCase {
             makeIssue(id: 70, name: "Environment Bill", categories: [environment]),
             makeIssue(id: 71, name: "Environmental Policy", categories: [civilRights]),
             makeIssue(id: 72, name: "Civil Rights Act", categories: [civilRights]),
+            makeIssue(id: 73, name: "Environmental Cleanup", categories: [environment], active: false),
         ]
 
         let result = IssueCategoryFilter.filteredIssues(
             from: issues,
             searchText: "env",
-            showAllIssues: true,
+            showAllIssues: false,
             selectedCategory: environment
         )
 
-        XCTAssertEqual(result.map(\.id), [70])
+        XCTAssertEqual(result.map(\.id), [70, 73])
     }
 
     func testMoreFewerNoCategoryFilter() {
@@ -252,7 +268,7 @@ final class IssueCategoryFilterTests: XCTestCase {
 
     func testRefreshRemovesSelectedCategoryResetsToNil() {
         //harness:criterion=c-refresh-resets-selected-category,c-shallow-test-refresh-removal-resets-selection
-        var selectedCategory: Category? = environment
+        var selectedCategory: IssueCategory? = environment
         let updatedIssues = [
             makeIssue(id: 100, categories: [civilRights]),
             makeIssue(id: 101, categories: [healthcare]),
@@ -265,7 +281,7 @@ final class IssueCategoryFilterTests: XCTestCase {
 
     func testRefreshPreservesValidSelectedCategory() {
         //harness:criterion=c-refresh-preserves-valid-selected-category
-        var selectedCategory: Category? = environment
+        var selectedCategory: IssueCategory? = environment
         let updatedIssues = [
             makeIssue(id: 110, categories: [civilRights]),
             makeIssue(id: 111, categories: [environment]),
@@ -283,8 +299,9 @@ final class IssueCategoryFilterTests: XCTestCase {
             makeIssue(id: 121, reason: "Protect civic access", categories: [environment]),
             makeIssue(id: 122, script: "Ask for civil liberties support", categories: [healthcare]),
             makeIssue(id: 123, slug: "civil-budget", categories: [healthcare]),
-            makeIssue(id: 124, categories: [Category(name: "Civic Engagement")]),
+            makeIssue(id: 124, categories: [IssueCategory(name: "Civic Engagement")]),
             makeIssue(id: 125, name: "Healthcare Funding", categories: [healthcare]),
+            makeIssue(id: 126, name: "Civil rights update", categories: [healthcare], active: false),
         ]
 
         let result = IssueCategoryFilter.filteredIssues(
@@ -294,7 +311,7 @@ final class IssueCategoryFilterTests: XCTestCase {
             selectedCategory: nil
         )
 
-        XCTAssertEqual(result.map(\.id).sorted(), [120, 121, 122, 123, 124])
+        XCTAssertEqual(result.map(\.id).sorted(), [120, 121, 122, 123, 124, 126])
     }
 
     func testExistingSortOrderPreserved() {
@@ -431,7 +448,7 @@ final class IssueCategoryFilterTests: XCTestCase {
         slug: String? = nil,
         reason: String = "",
         script: String = "",
-        categories: [Category],
+        categories: [IssueCategory],
         active: Bool = true,
         createdAt: TimeInterval = 1_700_000_000
     ) -> Issue {
