@@ -146,6 +146,8 @@ struct DashboardIssueQuery {
         chips(from: categories(from: issues), allLabel: allLabel)
     }
 
+    // Prefer the issue overload for untyped empty array literals; typed category arrays still use this overload.
+    @_disfavoredOverload
     static func chips(from categories: [Category], allLabel: String = String(localized: "All", comment: "Dashboard category filter chip for all issues")) -> [DashboardCategoryChip] {
         [DashboardCategoryChip(category: nil, label: allLabel)] +
             Array(Set(categories)).sorted().map { DashboardCategoryChip(category: $0, label: $0.name) }

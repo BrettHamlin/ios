@@ -273,6 +273,19 @@ final class DashboardIssueQueryTests: XCTestCase {
         XCTAssertEqual(query.categorizedIssues.first?.issues.map(\.id), [1])
     }
 
+    //harness:criterion=c-grouped-mode-filters-to-selected-category-section
+    func testGroupedShowAllModeWithSelectedCategoryDoesNotCreateOtherSectionsForMultiCategoryIssues() {
+        let issues = [
+            issue(id: 1, categories: [environment, health]),
+            issue(id: 2, categories: [taxes]),
+        ]
+        let query = DashboardIssueQuery(searchText: "", showAllIssues: true, selectedCategory: environment, allIssues: issues)
+
+        XCTAssertEqual(query.categorizedIssues.count, 1)
+        XCTAssertEqual(query.categorizedIssues.first?.category, environment)
+        XCTAssertEqual(query.categorizedIssues.first?.issues.map(\.id), [1])
+    }
+
     //harness:criterion=c-grouped-mode-no-category-shows-all-sections
     func testGroupedShowAllModeWithAllChipShowsEveryCategorySection() {
         let issues = [
