@@ -49,6 +49,9 @@
     "About" : {
       "comment" : "AboutSheet navigation title\nDashboard menu item"
     },
+    "All" : {
+      "comment" : "Dashboard category filter chip for all issues"
+    },
     "An error occured trying to find your location" : {
       "comment" : "Default location error message"
     },

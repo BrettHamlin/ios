@@ -13,6 +13,6 @@ struct Category: Decodable {
 
 extension Category: Hashable, Comparable {
     static func < (lhs: Category, rhs: Category) -> Bool {
-        lhs.name < rhs.name
+        lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
     }
 }
