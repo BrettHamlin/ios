@@ -53,6 +53,15 @@ scope at warning/error severity when the reviewed diff supports them.
   feature's source of truth.
 - Search, filter, sort, selection, refresh, and navigation behavior preserve
   existing defaults unless the task explicitly changes them.
+- When the Contract or Additional context gives an explicit precedence matrix
+  for search, active/all, More/Fewer, selected filter, refresh, or selection
+  state, judge against that matrix instead of a generic idea of "composition."
+  If the context explicitly preserves unusual legacy behavior, such as search
+  scanning all loaded records while the non-search default shows only active
+  records, do not mark that preserved behavior as a D/F regression. If no
+  precedence is specified and the diff encodes contradictory expectations, flag
+  the ambiguity or test-oracle conflict rather than inventing a new product
+  contract.
 - Navigation path, sheet/popover state, tab selection, deep-link routing, and
   back/close behavior stay synchronized with app state.
 - SwiftData/Core Data/UserDefaults/in-memory stores migrate or normalize
@@ -69,8 +78,19 @@ scope at warning/error severity when the reviewed diff supports them.
   delegate callback, pull-to-refresh, or `userDataChanged`-style method should
   rebuild a data source, filter, section map, or selection mapping, tests should
   mutate the underlying model/progress fixture, invoke the refresh path, and
-  assert the real data source's visible mapping changed. A reload-count-only
-  assertion can pass while stale state remains.
+  assert the same production-owned data source or view model refreshed by the
+  controller changed its visible mapping. For selected non-All filters, the test
+  should capture a before/after visible mapping where at least one row/title
+  enters or exits because of the progress/data mutation. A separate helper
+  object that recomputes correctly does not prove the controller refresh path. A
+  reload-count-only assertion can pass while stale state remains.
+- Tests that mutate global Swift/iOS progress state must isolate that shared
+  state. If a fixture changes `User.current`, `UserDefaults`, shared stores,
+  notification centers, static caches, or learned/reviewed collections such as
+  `User.current.hasLearned` / `User.current.hasReviewed`, it should snapshot the
+  original values and restore them in `defer`, `tearDown`, or a repo-owned reset
+  helper. Missing restore is a concrete test-reliability concern because later
+  tests can observe dirty progress state.
 - Generated tests for transient loading or failure states prefer deterministic
   unit, reducer, interactor, or view-model state tests over UI tests. Do not
   require or invent a new infinite-loading UI-test launch mode, a repository
@@ -102,6 +122,13 @@ scope at warning/error severity when the reviewed diff supports them.
   contract, generated tests should assert the exact expected label strings for
   every option. Non-empty label assertions are weak evidence because arbitrary
   visible copy can satisfy them.
+- For UIKit segmented-control or picker filter wiring, generated controller
+  tests should drive every requested option through the production action or an
+  explicit testable selection seam. Data-source-only coverage for every mode
+  plus a controller test for only one segment is incomplete, because an untested
+  option can be unreachable while tests still pass. For modes such as
+  All/Not Started/Completed, tests should prove each segment maps to the
+  production-owned selected filter, visible mapping, and accessibility value.
 - Conditional transient-state UI assertions are not deterministic evidence. A
   loading/failure UI test that says "if the loading indicator exists, then
   assert the new control is absent" can pass when loading resolves before the
@@ -142,6 +169,10 @@ scope at warning/error severity when the reviewed diff supports them.
 - **C/warning:** generated tests only assert non-empty visible labels for
   ticket-critical picker or segmented-control options whose exact user-facing
   labels are part of the requested behavior.
+- **C/warning:** a generated controller-level segmented-control or picker test
+  proves only a subset of requested filter options while data-source/helper tests
+  cover the rest. Grade D/error if that missing wiring makes a requested option
+  unreachable or maps it to the wrong production state.
 - **B/warning:** advisory test-quality gaps, overstated test metadata,
   non-blocking uncertainty caused by progressive review clustering, or minor
   copy assertions when the product behavior itself is implemented and covered.
@@ -156,10 +187,24 @@ scope at warning/error severity when the reviewed diff supports them.
   production signal is correct but tests miss it, grade the missing assertion C.
 - **UIKit refresh calibration:** grade C/warning when the implementation appears
   to rebuild the requested data source or filter mapping, but the generated
-  tests only assert `reloadData()` or an equivalent UI invalidation call. Grade
+  tests only assert `reloadData()` or an equivalent UI invalidation call, or do
+  not assert a before/after visible mapping change on the production-owned
+  object under the selected filter. Grade
   D/error when the production refresh path itself leaves stale filtered rows,
   section maps, selection targets, or navigation state after underlying user
   progress/data changes.
+- **Global progress fixture calibration:** grade C/warning when generated tests
+  mutate global progress state such as `User.current`, `UserDefaults`, static
+  caches, or learned/reviewed collections without deterministic restore. Grade
+  D/error if the dirty global state can make the tested product behavior pass or
+  fail depending on test order, async timing, or a previous test's leftover
+  progress values.
+- **Learned/reviewed fixture calibration:** grade C/warning when generated
+  tests claim to prove reviewed-only, learned-only, Not Started, or Completed
+  filtering but do not isolate that exact progress combination with both
+  positive and negative examples. For Completed, expect a learned+reviewed item
+  to be visible and learned-only/reviewed-only items to be excluded; for Not
+  Started, expect started-but-incomplete items to be excluded.
 - **SwiftData hidden-query calibration:** for SwiftData `@Query`,
   `QueryViewContainer`, or hidden-query list shapes, do not C-grade solely
   because tests avoid rendered row/order inspection for a search/filter plus
