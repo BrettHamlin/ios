@@ -42,15 +42,18 @@ jobs:
             | tee "$RUNNER_TEMP/gridfire-xcode-destinations.txt"
           grep -q "platform:iOS Simulator.*OS:26.1.*name:iPhone 17" "$RUNNER_TEMP/gridfire-xcode-destinations.txt"
       - name: Run iOS simulator tests
+        timeout-minutes: 20
         run: |
           set -o pipefail
           export PATH="$DEVELOPER_DIR/usr/bin:$PATH"
           rm -rf "$DERIVED_DATA_PATH"
+          rm -rf "$RUNNER_TEMP/gridfire-xcodebuild-test.xcresult"
           xcodebuild test \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
             -destination "$XCODE_DESTINATION" \
             -derivedDataPath "$DERIVED_DATA_PATH" \
+            -resultBundlePath "$RUNNER_TEMP/gridfire-xcodebuild-test.xcresult" \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             | tee "$RUNNER_TEMP/gridfire-xcodebuild-test.log"
@@ -63,4 +66,5 @@ jobs:
             ${{ runner.temp }}/gridfire-simctl-devices.txt
             ${{ runner.temp }}/gridfire-xcode-destinations.txt
             ${{ runner.temp }}/gridfire-xcodebuild-test.log
+            ${{ runner.temp }}/gridfire-xcodebuild-test.xcresult
           if-no-files-found: ignore
