@@ -4,7 +4,7 @@ import Foundation
 
 internal enum CategoryFilterOption: Equatable, Hashable, Identifiable {
     case all
-    case category(Category)
+    case category(FiveCalls.Category)
 
     var id: String {
         switch self {
@@ -15,7 +15,7 @@ internal enum CategoryFilterOption: Equatable, Hashable, Identifiable {
         }
     }
 
-    var category: Category? {
+    var category: FiveCalls.Category? {
         switch self {
         case .all:
             return nil
@@ -48,7 +48,7 @@ internal enum IssueFilterHelper {
         Set(issues.flatMap(\.categories).map(\.name))
     }
 
-    static func validatedSelectedCategory(_ selectedCategory: Category?, issues: [Issue]) -> Category? {
+    static func validatedSelectedCategory(_ selectedCategory: FiveCalls.Category?, issues: [Issue]) -> FiveCalls.Category? {
         guard let selectedCategory else { return nil }
 
         let categoryIsPresent = categoryNames(from: issues).contains(selectedCategory.name)
@@ -61,7 +61,7 @@ internal enum IssueFilterHelper {
         showAllIssues: Bool,
         isSearching: Bool,
         searchText: String,
-        selectedCategory: Category?
+        selectedCategory: FiveCalls.Category?
     ) -> [Issue] {
         let baseIssues: [Issue]
 

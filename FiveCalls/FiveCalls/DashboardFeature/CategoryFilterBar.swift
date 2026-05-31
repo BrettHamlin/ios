@@ -4,7 +4,7 @@ import SwiftUI
 
 struct CategoryFilterBar: View {
     let issues: [Issue]
-    @Binding var selectedCategory: Category?
+    @Binding var selectedCategory: FiveCalls.Category?
 
     private var options: [CategoryFilterOption] {
         IssueFilterHelper.categoryOptions(from: issues)

@@ -11,7 +11,7 @@ struct Dashboard: View {
 
     @State var showAllIssues = false
     @State var searchText = ""
-    @State var selectedCategory: Category?
+    @State var selectedCategory: FiveCalls.Category?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -155,7 +155,7 @@ struct IssuesList: View {
     @Binding var selectedIssue: Issue?
     @Binding var showAllIssues: Bool
     @Binding var searchText: String
-    @Binding var selectedCategory: Category?
+    @Binding var selectedCategory: FiveCalls.Category?
 
     var isSearching: Bool {
         searchText.count >= 3
@@ -174,7 +174,7 @@ struct IssuesList: View {
     private var categorizedIssues: [CategorizedIssuesViewModel] {
         if isSearching || !showAllIssues {
             // For search results or default view, make fake categories to preserve order and show flat list
-            return allIssues.map { CategorizedIssuesViewModel(category: Category(name: "\($0.id)"), issues: [$0]) }
+            return allIssues.map { CategorizedIssuesViewModel(category: FiveCalls.Category(name: "\($0.id)"), issues: [$0]) }
         }
 
         var result: [CategorizedIssuesViewModel] = []
@@ -185,7 +185,7 @@ struct IssuesList: View {
 
         if !stateIssues.isEmpty {
             let stateName = stateIssues.first?.stateNameFromAbbreviation ?? "State"
-            result.append(CategorizedIssuesViewModel(category: Category(name: stateName), issues: stateIssues))
+            result.append(CategorizedIssuesViewModel(category: FiveCalls.Category(name: stateName), issues: stateIssues))
         }
 
         // Build regular categories from non-state issues only

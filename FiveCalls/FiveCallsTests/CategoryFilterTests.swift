@@ -5,11 +5,13 @@ import UIKit
 import XCTest
 @testable import FiveCalls
 
+typealias Category = FiveCalls.Category
+
 final class CategoryFilterTests: XCTestCase {
-    private let budget = Category(name: "Budget")
-    private let environment = Category(name: "Environment")
-    private let immigration = Category(name: "Immigration")
-    private let health = Category(name: "Health")
+    private let budget = FiveCalls.Category(name: "Budget")
+    private let environment = FiveCalls.Category(name: "Environment")
+    private let immigration = FiveCalls.Category(name: "Immigration")
+    private let health = FiveCalls.Category(name: "Health")
 
     func testCategoryOptionsAreAllThenSortedUniqueCategories() {
         //harness:criterion=c-category-filter-bar-renders,c-category-filter-bar-sorted,c-category-option-derivation-pure,c-category-filter-bar-empty-issue-list,c-issue-filter-helper-internal
@@ -33,64 +35,96 @@ final class CategoryFilterTests: XCTestCase {
         XCTAssertEqual(IssueFilterHelper.categoryOptions(from: []), [.all])
     }
 
-    func testCategoryFilterBarStartsWithAllSelection() {
-        //harness:criterion=c-category-filter-bar-all-default,c-category-filter-state-local,c-category-filter-bar-placement
-        var selectedCategory: Category? = nil
-        let binding = Binding<Category?>(
+    @MainActor
+    func testCategoryFilterBarStartsWithAllSelection() throws {
+        //harness:criterion=c-category-filter-bar-all-default,c-category-filter-state-local
+        var selectedCategory: FiveCalls.Category? = nil
+        let binding = Binding<FiveCalls.Category?>(
             get: { selectedCategory },
             set: { selectedCategory = $0 }
         )
 
-        _ = CategoryFilterBar(
+        let bar = CategoryFilterBar(
             issues: [makeIssue(id: 1, categories: [budget])],
             selectedCategory: binding
         )
+        let nodes = hostedAccessibilityNodes(for: bar)
+        let allNode = try XCTUnwrap(nodes.first { $0.label == "Filter by All" })
 
         XCTAssertNil(binding.wrappedValue)
         XCTAssertNil(selectedCategory)
+        XCTAssertTrue(allNode.traits.contains(.selected))
     }
 
-    func testCategoryFilterBarHasAtLeastMinimumTouchTargetHeight() {
+    @MainActor
+    func testDashboardRendersCategoryFilterBetweenSearchAndIssuesList() throws {
+        //harness:criterion=c-category-filter-bar-placement
+        let state = AppState()
+        state.issues = [
+            makeIssue(id: 1, name: "Budget issue", categories: [budget]),
+        ]
+        let store = Store(state: state, middlewares: [])
+        let dashboard = Dashboard(selectedIssue: .constant(nil))
+            .environmentObject(store)
+
+        let nodes = hostedAccessibilityNodes(for: dashboard, size: CGSize(width: 390, height: 900))
+        let labels = nodes.map(\.label)
+        let searchIndex = try XCTUnwrap(firstIndex(in: labels, containing: "Search all issues"))
+        let filterIndex = try XCTUnwrap(labels.firstIndex(of: "Issue category filter"))
+        let issueIndex = try XCTUnwrap(labels.firstIndex { $0.contains("Budget issue") })
+
+        XCTAssertLessThan(searchIndex, filterIndex)
+        XCTAssertLessThan(filterIndex, issueIndex)
+    }
+
+    @MainActor
+    func testCategoryFilterBarHasAtLeastMinimumTouchTargetHeight() throws {
         //harness:criterion=c-category-filter-bar-touch-target
         let bar = CategoryFilterBar(
-            issues: [makeIssue(id: 1, categories: [budget])],
+            issues: [makeIssue(id: 1, categories: [Category(name: "A")])],
             selectedCategory: .constant(nil)
         )
-        let controller = UIHostingController(rootView: bar)
+        let nodes = hostedAccessibilityNodes(for: bar)
+        let chipNodes = [
+            try XCTUnwrap(nodes.first { $0.label == "Filter by All" }),
+            try XCTUnwrap(nodes.first { $0.label == "Filter by A" }),
+        ]
 
-        let size = controller.sizeThatFits(in: CGSize(width: 320, height: 1_000))
-
-        XCTAssertGreaterThanOrEqual(size.height, 44)
+        for node in chipNodes {
+            XCTAssertGreaterThanOrEqual(node.frame.width, 44, node.label)
+            XCTAssertGreaterThanOrEqual(node.frame.height, 44, node.label)
+        }
     }
 
+    @MainActor
     func testLocalizedCategoryFilterLabelsHaveFallbackDisplayText() {
         //harness:criterion=c-category-filter-all-localized,c-category-filter-bar-accessibility-label,c-category-filter-bar-voiceover-control-label
-        let allLabel = String(
-            localized: "Category filter all option",
-            defaultValue: "All",
-            comment: "CategoryFilterBar all categories option"
-        )
-        let controlLabel = String(
-            localized: "Category filter control accessibility label",
-            defaultValue: "Issue category filter",
-            comment: "CategoryFilterBar control accessibility label"
-        )
-        let chipFormat = String(
-            localized: "Category filter option accessibility label",
-            defaultValue: "Filter by %@",
-            comment: "CategoryFilterBar chip accessibility label"
-        )
+        let allLabel = localizedAppString(forKey: "Category filter all option")
+        let controlLabel = localizedAppString(forKey: "Category filter control accessibility label")
+        let chipFormat = localizedAppString(forKey: "Category filter option accessibility label")
         let chipLabel = String(format: chipFormat, budget.name)
+        let nodes = hostedAccessibilityNodes(
+            for: CategoryFilterBar(
+                issues: [makeIssue(id: 1, categories: [budget])],
+                selectedCategory: .constant(nil)
+            )
+        )
 
         XCTAssertEqual(CategoryFilterOption.all.name, allLabel)
         XCTAssertFalse(allLabel.isEmpty)
+        XCTAssertNotEqual(allLabel, "Category filter all option")
         XCTAssertFalse(controlLabel.isEmpty)
+        XCTAssertNotEqual(controlLabel, "Category filter control accessibility label")
         XCTAssertFalse(chipLabel.isEmpty)
+        XCTAssertNotEqual(chipFormat, "Category filter option accessibility label")
         XCTAssertTrue(chipLabel.contains(budget.name))
+        XCTAssertTrue(nodes.contains { $0.label == controlLabel })
+        XCTAssertTrue(nodes.contains { $0.label == String(format: chipFormat, allLabel) })
+        XCTAssertTrue(nodes.contains { $0.label == chipLabel })
     }
 
     func testAllSelectionPreservesIssueOrder() {
-        //harness:criterion=c-category-filter-all-preserves-order,c-existing-navigation-link-preserved
+        //harness:criterion=c-category-filter-all-preserves-order
         let issues = [
             makeIssue(id: 1, name: "First", categories: [budget]),
             makeIssue(id: 2, name: "Second", categories: [environment]),
@@ -229,6 +263,28 @@ final class CategoryFilterTests: XCTestCase {
         XCTAssertEqual(result.count, 0)
     }
 
+    func testSearchMatchesReasonScriptSlugAndCategoryWhenAllIsSelected() {
+        //harness:criterion=c-search-semantics-preserved
+        let issues = [
+            makeIssue(id: 1, name: "Name match", categories: [health]),
+            makeIssue(id: 2, reason: "Reason contains omnibus", categories: [budget]),
+            makeIssue(id: 3, script: "Script says omnibus", categories: [environment]),
+            makeIssue(id: 4, slug: "omnibus-slug", categories: [immigration]),
+            makeIssue(id: 5, name: "Category match only", categories: [Category(name: "Omnibus")]),
+            makeIssue(id: 6, name: "No match", categories: [health]),
+        ]
+
+        let result = IssueFilterHelper.filteredIssues(
+            from: issues,
+            showAllIssues: true,
+            isSearching: true,
+            searchText: "omnibus",
+            selectedCategory: nil
+        )
+
+        XCTAssertEqual(Set(result.map(\.id)), Set([2, 3, 4, 5]))
+    }
+
     func testSelectedCategoryValidationResetsOnlyWhenCategoryDisappears() {
         //harness:criterion=c-category-filter-reset-on-issue-change,c-category-filter-no-reset-when-category-present
         let replacementIssuesWithBudget = [
@@ -255,7 +311,7 @@ final class CategoryFilterTests: XCTestCase {
         reason: String = "Reason",
         script: String = "Script",
         slug: String? = nil,
-        categories: [Category],
+        categories: [FiveCalls.Category],
         active: Bool = true,
         meta: String = ""
     ) -> Issue {
@@ -274,5 +330,70 @@ final class CategoryFilterTests: XCTestCase {
             createdAt: Date(timeIntervalSince1970: TimeInterval(id)),
             actions: nil
         )
+    }
+
+    private struct AccessibilityNode {
+        let label: String
+        let frame: CGRect
+        let traits: UIAccessibilityTraits
+    }
+
+    @MainActor
+    private func hostedAccessibilityNodes<Content: View>(
+        for view: Content,
+        size: CGSize = CGSize(width: 320, height: 240)
+    ) -> [AccessibilityNode] {
+        let controller = UIHostingController(rootView: view)
+        let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = window.bounds
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+
+        return accessibilityNodes(in: controller.view)
+    }
+
+    private func accessibilityNodes(in view: UIView) -> [AccessibilityNode] {
+        var result: [AccessibilityNode] = []
+
+        func appendNode(label: String?, frame: CGRect, traits: UIAccessibilityTraits) {
+            guard let label, !label.isEmpty else { return }
+            result.append(AccessibilityNode(label: label, frame: frame, traits: traits))
+        }
+
+        func walk(_ view: UIView) {
+            appendNode(
+                label: view.accessibilityLabel ?? (view as? UILabel)?.text ?? (view as? UITextField)?.placeholder,
+                frame: view.accessibilityFrame == .zero ? view.convert(view.bounds, to: nil) : view.accessibilityFrame,
+                traits: view.accessibilityTraits
+            )
+
+            view.accessibilityElements?.forEach { element in
+                if let accessibilityElement = element as? UIAccessibilityElement {
+                    appendNode(
+                        label: accessibilityElement.accessibilityLabel,
+                        frame: accessibilityElement.accessibilityFrame,
+                        traits: accessibilityElement.accessibilityTraits
+                    )
+                } else if let elementView = element as? UIView {
+                    walk(elementView)
+                }
+            }
+
+            view.subviews.forEach(walk)
+        }
+
+        walk(view)
+        return result
+    }
+
+    private func firstIndex(in labels: [String], containing text: String) -> Int? {
+        labels.firstIndex { $0.localizedCaseInsensitiveContains(text) }
+    }
+
+    private func localizedAppString(forKey key: String) -> String {
+        Bundle(for: AppDelegate.self).localizedString(forKey: key, value: nil, table: nil)
     }
 }
