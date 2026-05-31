@@ -61,6 +61,15 @@ remain in scope at warning/error severity when the reviewed diff supports them.
   ambiguous to VoiceOver if the group itself is unnamed. Assume controls in
   table headers, navigation items, or toolbars need explicit group context
   unless nearby accessible text already names the control's purpose.
+- Primary segmented controls, pickers, toolbar filters, and table-header filters
+  keep an interactive touch target at least 44 points tall. Treat fixed
+  36-point table headers or similarly cramped primary filter containers as
+  concrete touch-target concerns even if the visible control renders.
+- Multi-option text segmented controls and filters are not placed where labels
+  will likely compress or truncate under Dynamic Type, localization, smaller
+  phones, or competing navigation bar items. Treat a three-or-more-option text
+  filter in `navigationItem.titleView` or a cramped toolbar item as a concrete
+  UX concern unless the diff shows short labels and enough available width.
 - Dynamic Type, localization, right-to-left layout, and multiline content do
   not overlap, clip critical text, or hide primary actions.
 - VoiceOver order and focus remain coherent after modals, navigation pushes,
@@ -80,6 +89,13 @@ remain in scope at warning/error severity when the reviewed diff supports them.
 - **C/warning:** a new segmented control, picker, toolbar filter, or table-header
   filter uses correct visible option labels but lacks a group accessibility label
   or similarly clear VoiceOver context.
+- **C/warning:** a new primary segmented control, picker, toolbar filter, or
+  table-header filter is placed in a fixed-height container below 44 points or
+  otherwise materially shrinks the expected phone touch target.
+- **C/warning:** a three-or-more-option text segmented control or picker is
+  placed in `navigationItem.titleView` or a cramped toolbar item where important
+  labels are likely to compress under Dynamic Type, localization, or smaller
+  devices.
 - **C/warning:** minor copy, spacing, label specificity, or coverage issue
   proven by the provided diff/context.
 - **A:** no iOS accessibility or UX concerns in the diff.
