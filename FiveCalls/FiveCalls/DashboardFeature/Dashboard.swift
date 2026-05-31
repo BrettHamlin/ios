@@ -21,10 +21,7 @@ struct Dashboard: View {
 
     private func resetSelectedCategoryIfNeeded() {
         selectedCategory = IssueListFilter.resetCategoryIfNeeded(
-            issues: IssueListFilter.categorySourceIssues(
-                issues: store.state.issues,
-                showAllIssues: showAllIssues
-            ),
+            issues: store.state.issues,
             selectedCategory: selectedCategory
         )
     }
@@ -69,10 +66,7 @@ struct Dashboard: View {
             SearchBar(searchText: $searchText)
 
             CategoryFilterView(
-                issues: IssueListFilter.categorySourceIssues(
-                    issues: store.state.issues,
-                    showAllIssues: showAllIssues
-                ),
+                issues: store.state.issues,
                 selectedCategory: $selectedCategory
             )
 
@@ -105,9 +99,6 @@ struct Dashboard: View {
                 selectedIssue = store.state.issues.first(where: { $0.slug == selectedIssueUrl.lastPathComponent })
                 self.selectedIssueUrl = nil
             }
-            resetSelectedCategoryIfNeeded()
-        }
-        .onChange(of: showAllIssues) {
             resetSelectedCategoryIfNeeded()
         }
     }

@@ -6,13 +6,48 @@ import XCTest
 @testable import FiveCalls
 
 final class IssueListFilterTests: XCTestCase {
-    private let environment = Category(name: "Environment")
-    private let health = Category(name: "Health")
-    private let democracy = Category(name: "Democracy")
+    private typealias IssueCategory = FiveCalls.Category
+
+    private let environment = IssueCategory(name: "Environment")
+    private let health = IssueCategory(name: "Health")
+    private let democracy = IssueCategory(name: "Democracy")
+
+    func testCategoryFilterViewShowsAllFirstAndDerivesDistinctCategoriesFromIssues() {
+        //harness:criterion=c-category-filter-shows-all-pill,c-category-filter-pills-derived-from-issues,c-all-pill-default-selected
+        let issues = [
+            issue(id: 1, name: "Climate Action", categories: [environment, democracy]),
+            issue(id: 2, name: "Health Funding", categories: [health]),
+            issue(id: 3, name: "Clean Water", categories: [environment]),
+        ]
+        let inspection = inspectCategoryFilter(issues: issues)
+
+        XCTAssertEqual(inspection.visibleTextStrings.first, "All")
+        XCTAssertEqual(inspection.visibleTextStrings.filter { $0 == "All" }.count, 1)
+        XCTAssertEqual(inspection.forEachCategories.map(\.name), ["Democracy", "Environment", "Health"])
+        XCTAssertTrue(
+            inspection.accessibilityTraitRawValues.contains(4),
+            "The initially selected All pill should expose SwiftUI's selected accessibility trait."
+        )
+    }
+
+    func testCategoryFilterViewAppliesAccessibleScalablePillStyling() {
+        //harness:criterion=c-category-filter-tap-target,c-category-filter-voiceover-label,c-category-filter-dynamic-type
+        let inspection = inspectCategoryFilter(
+            issues: [issue(id: 1, name: "Climate Action", categories: [environment])]
+        )
+        let allPill = inspection.visibleTexts.first { $0.string == "All" }
+
+        XCTAssertTrue(inspection.accessibilityLabels.contains("Issue category filter"))
+        XCTAssertTrue(
+            inspection.frameMinimums.contains { $0.width >= 44 && $0.height >= 44 },
+            "The All pill should declare a minimum 44x44 tap target."
+        )
+        XCTAssertEqual(allPill?.usesDynamicTextStyle, true)
+    }
 
     func testCategoryFilterViewCanBeInstantiatedWithLoadedIssues() {
         //harness:criterion=c-category-filter-view-exists
-        var selectedCategory: Category?
+        var selectedCategory: IssueCategory?
         let view = CategoryFilterView(
             issues: [
                 issue(id: 1, name: "Climate Action", categories: [environment]),
@@ -44,7 +79,7 @@ final class IssueListFilterTests: XCTestCase {
         var selectedIssue: Issue?
         var showAllIssues = false
         var searchText = ""
-        var selectedCategory: Category? = environment
+        var selectedCategory: IssueCategory? = environment
         let list = IssuesList(
             store: store,
             selectedIssue: Binding(get: { selectedIssue }, set: { selectedIssue = $0 }),
@@ -284,7 +319,7 @@ final class IssueListFilterTests: XCTestCase {
     private func issue(
         id: Int,
         name: String,
-        categories: [Category],
+        categories: [IssueCategory],
         active: Bool = true,
         meta: String = "",
         reason: String? = nil,
@@ -342,5 +377,197 @@ final class IssueListFilterTests: XCTestCase {
         }
 
         return stringUnit["value"] as? String
+    }
+
+    private func inspectCategoryFilter(
+        issues: [Issue],
+        selectedCategory initialSelectedCategory: IssueCategory? = nil
+    ) -> CategoryFilterInspection {
+        var selectedCategory = initialSelectedCategory
+        let view = CategoryFilterView(
+            issues: issues,
+            selectedCategory: Binding(
+                get: { selectedCategory },
+                set: { selectedCategory = $0 }
+            )
+        )
+
+        return CategoryFilterInspection(view.body)
+    }
+
+    private struct CategoryFilterInspection {
+        private(set) var visibleTexts: [TextInspection] = []
+        private(set) var accessibilityLabels: [String] = []
+        private(set) var forEachCategories: [IssueCategory] = []
+        private(set) var frameMinimums: [(width: Double, height: Double)] = []
+        private(set) var accessibilityTraitRawValues: [UInt64] = []
+
+        var visibleTextStrings: [String] {
+            visibleTexts.map(\.string)
+        }
+
+        init(_ body: some View) {
+            inspect(body)
+        }
+
+        private mutating func inspect(_ value: Any) {
+            if let text = value as? Text {
+                let textInspection = inspectText(text)
+                if let string = textInspection.string {
+                    if textInspection.hasVisibleModifiers {
+                        visibleTexts.append(
+                            TextInspection(
+                                string: string,
+                                usesDynamicTextStyle: textInspection.usesDynamicTextStyle
+                            )
+                        )
+                    } else {
+                        accessibilityLabels.append(string)
+                    }
+                }
+                return
+            }
+
+            let typeName = String(reflecting: type(of: value))
+            if typeName.contains("_FlexFrameLayout"),
+               let minimums = frameMinimums(from: value) {
+                frameMinimums.append(minimums)
+            }
+
+            if typeName.contains("AccessibilityTraitSet"),
+               let rawValue = rawAccessibilityTraitValue(from: value) {
+                accessibilityTraitRawValues.append(rawValue)
+            }
+
+            if let categories = value as? [IssueCategory] {
+                forEachCategories = categories
+            }
+
+            guard shouldRecurse(into: value) else {
+                return
+            }
+
+            for child in Mirror(reflecting: value).children {
+                inspect(child.value)
+            }
+        }
+
+        private func inspectText(_ text: Text) -> (
+            string: String?,
+            hasVisibleModifiers: Bool,
+            usesDynamicTextStyle: Bool
+        ) {
+            let mirror = Mirror(reflecting: text)
+            let string = firstVerbatimString(in: text)
+            let modifierCount = mirror.children.first { $0.label == "modifiers" }
+                .map { Mirror(reflecting: $0.value).children.count } ?? 0
+
+            return (
+                string,
+                modifierCount > 0,
+                containsTypeName("TextStyleProvider", in: text)
+            )
+        }
+
+        private func firstVerbatimString(in value: Any) -> String? {
+            for child in Mirror(reflecting: value).children {
+                if child.label == "verbatim", let string = child.value as? String {
+                    return string
+                }
+
+                if let string = firstVerbatimString(in: child.value) {
+                    return string
+                }
+            }
+
+            return nil
+        }
+
+        private func containsTypeName(_ needle: String, in value: Any) -> Bool {
+            if String(reflecting: type(of: value)).contains(needle) {
+                return true
+            }
+
+            guard shouldRecurse(into: value) else {
+                return false
+            }
+
+            return Mirror(reflecting: value).children.contains { child in
+                containsTypeName(needle, in: child.value)
+            }
+        }
+
+        private func frameMinimums(from value: Any) -> (width: Double, height: Double)? {
+            var width: Double?
+            var height: Double?
+
+            for child in Mirror(reflecting: value).children {
+                switch child.label {
+                case "minWidth":
+                    width = optionalDouble(child.value)
+                case "minHeight":
+                    height = optionalDouble(child.value)
+                default:
+                    continue
+                }
+            }
+
+            guard let width, let height else {
+                return nil
+            }
+
+            return (width, height)
+        }
+
+        private func rawAccessibilityTraitValue(from value: Any) -> UInt64? {
+            for child in Mirror(reflecting: value).children {
+                if child.label == "rawValue" {
+                    if let rawValue = child.value as? UInt64 {
+                        return rawValue
+                    }
+                    if let rawValue = child.value as? Int {
+                        return UInt64(rawValue)
+                    }
+                }
+
+                if let rawValue = rawAccessibilityTraitValue(from: child.value) {
+                    return rawValue
+                }
+            }
+
+            return nil
+        }
+
+        private func optionalDouble(_ value: Any) -> Double? {
+            let mirror = Mirror(reflecting: value)
+            guard mirror.displayStyle == .optional,
+                  let unwrapped = mirror.children.first?.value
+            else {
+                return nil
+            }
+
+            if let cgFloat = unwrapped as? CGFloat {
+                return Double(cgFloat)
+            }
+            if let double = unwrapped as? Double {
+                return double
+            }
+
+            return nil
+        }
+
+        private func shouldRecurse(into value: Any) -> Bool {
+            switch value {
+            case is String, is Int, is Bool, is Double, is CGFloat, is UInt64:
+                return false
+            default:
+                return true
+            }
+        }
+    }
+
+    private struct TextInspection {
+        let string: String
+        let usesDynamicTextStyle: Bool
     }
 }
