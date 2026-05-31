@@ -163,24 +163,17 @@ struct DashboardIssueQuery {
 }
 
 struct CategoryChipRow: View {
-    private let categories: [Category]
+    private let chips: [DashboardCategoryChip]
     @Binding private var selectedCategory: Category?
 
     init(issues: [Issue], selectedCategory: Binding<Category?>) {
-        categories = DashboardIssueQuery.categories(from: issues)
+        chips = DashboardIssueQuery.chips(from: issues)
         _selectedCategory = selectedCategory
     }
 
     init(categories: [Category], selectedCategory: Binding<Category?>) {
-        self.categories = Array(Set(categories)).sorted()
+        chips = DashboardIssueQuery.chips(from: categories)
         _selectedCategory = selectedCategory
-    }
-
-    private var chips: [DashboardCategoryChip] {
-        [DashboardCategoryChip(
-            category: nil,
-            label: String(localized: "All", comment: "Dashboard category filter chip for all issues")
-        )] + categories.map { DashboardCategoryChip(category: $0, label: $0.name) }
     }
 
     var body: some View {

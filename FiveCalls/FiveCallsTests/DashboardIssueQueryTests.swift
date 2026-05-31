@@ -180,6 +180,16 @@ final class DashboardIssueQueryTests: XCTestCase {
         XCTAssertEqual(chips.compactMap(\.category), [aardvark, mango, zebra])
     }
 
+    //harness:criterion=c-chip-row-all-chip-always-first,c-chip-row-all-chip-selected-by-default
+    func testChipSourceContainsOnlySelectedAllChipWhenNoCategoriesAreLoaded() {
+        let chips = DashboardIssueQuery.chips(from: [], allLabel: "All")
+        let selectedCategory: FiveCalls.Category? = nil
+
+        XCTAssertEqual(chips.count, 1)
+        XCTAssertEqual(chips.first?.label, "All")
+        XCTAssertEqual(chips.first?.category, selectedCategory)
+    }
+
     //harness:criterion=c-selected-category-reset-on-refresh,c-query-tests-cover-reset-on-refresh
     func testSelectedCategoryResetsWhenRefreshRemovesCategory() {
         let refreshedIssues = [issue(id: 1, categories: [health])]
@@ -314,6 +324,7 @@ final class DashboardIssueQueryTests: XCTestCase {
 
     //harness:criterion=c-more-fewer-footer-hidden-only-while-searching
     func testFooterHiddenConditionDependsOnlyOnActiveSearch() {
+        XCTAssertFalse(DashboardIssueQuery.isSearching(searchText: "en"))
         XCTAssertTrue(DashboardIssueQuery.isSearching(searchText: "env"))
 
         let selectedCategoryQuery = DashboardIssueQuery(
