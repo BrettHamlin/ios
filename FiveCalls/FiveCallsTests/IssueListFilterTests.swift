@@ -61,6 +61,37 @@ final class IssueListFilterTests: XCTestCase {
         XCTAssertFalse(bodyTypeDescription.isEmpty)
     }
 
+    func testSelectingAllPillResetsBindingToNilAndRestoresUnfilteredActiveIssues() throws {
+        //harness:criterion=c-selecting-all-pill-resets-to-nil
+        let activeEnvironment = issue(id: 1, name: "Climate Action", categories: [environment], active: true)
+        let activeHealth = issue(id: 2, name: "Health Funding", categories: [health], active: true)
+        let inactiveEnvironment = issue(id: 3, name: "Inactive Climate", categories: [environment], active: false)
+        let issues = [activeEnvironment, activeHealth, inactiveEnvironment]
+        var selectedCategory: IssueCategory? = environment
+        let view = CategoryFilterView(
+            issues: issues,
+            selectedCategory: Binding(
+                get: { selectedCategory },
+                set: { selectedCategory = $0 }
+            )
+        )
+        let inspection = CategoryFilterInspection(view.body)
+        let allButton = try XCTUnwrap(inspection.buttons.first { $0.title == "All" })
+
+        allButton.action()
+
+        XCTAssertNil(selectedCategory)
+        XCTAssertEqual(
+            IssueListFilter.filter(
+                issues: issues,
+                showAllIssues: false,
+                searchText: "",
+                selectedCategory: selectedCategory
+            ),
+            [activeEnvironment, activeHealth]
+        )
+    }
+
     func testDashboardDefaultsSelectedCategoryToAll() {
         //harness:criterion=c-dashboard-selected-category-state,c-all-pill-default-selected
         let dashboard = Dashboard(selectedIssue: .constant(nil))
@@ -401,6 +432,7 @@ final class IssueListFilterTests: XCTestCase {
         private(set) var forEachCategories: [IssueCategory] = []
         private(set) var frameMinimums: [(width: Double, height: Double)] = []
         private(set) var accessibilityTraitRawValues: [UInt64] = []
+        private(set) var buttons: [ButtonInspection] = []
 
         var visibleTextStrings: [String] {
             visibleTexts.map(\.string)
@@ -429,6 +461,12 @@ final class IssueListFilterTests: XCTestCase {
             }
 
             let typeName = String(reflecting: type(of: value))
+            if typeName.hasPrefix("SwiftUI.Button"),
+               let title = firstVerbatimString(in: value),
+               let action = firstAction(in: value) {
+                buttons.append(ButtonInspection(title: title, action: action))
+            }
+
             if typeName.contains("_FlexFrameLayout"),
                let minimums = frameMinimums(from: value) {
                 frameMinimums.append(minimums)
@@ -477,6 +515,24 @@ final class IssueListFilterTests: XCTestCase {
 
                 if let string = firstVerbatimString(in: child.value) {
                     return string
+                }
+            }
+
+            return nil
+        }
+
+        private func firstAction(in value: Any) -> (() -> Void)? {
+            if let action = value as? () -> Void {
+                return action
+            }
+
+            guard shouldRecurse(into: value) else {
+                return nil
+            }
+
+            for child in Mirror(reflecting: value).children {
+                if let action = firstAction(in: child.value) {
+                    return action
                 }
             }
 
@@ -569,5 +625,10 @@ final class IssueListFilterTests: XCTestCase {
     private struct TextInspection {
         let string: String
         let usesDynamicTextStyle: Bool
+    }
+
+    private struct ButtonInspection {
+        let title: String
+        let action: () -> Void
     }
 }

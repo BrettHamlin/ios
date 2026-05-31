@@ -7,7 +7,7 @@ struct CategoryFilterView: View {
     @Binding var selectedCategory: Category?
 
     private var categories: [Category] {
-        Array(Set(issues.flatMap(\.categories))).sorted()
+        IssueListFilter.categories(in: issues)
     }
 
     var body: some View {

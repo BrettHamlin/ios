@@ -3,6 +3,10 @@
 import Foundation
 
 enum IssueListFilter {
+    static func categories(in issues: [Issue]) -> [Category] {
+        Array(Set(issues.flatMap(\.categories))).sorted()
+    }
+
     static func filter(
         issues: [Issue],
         showAllIssues: Bool,
@@ -86,9 +90,7 @@ enum IssueListFilter {
             return nil
         }
 
-        return issues.contains { issue in
-            issue.categories.contains(selectedCategory)
-        } ? selectedCategory : nil
+        return categories(in: issues).contains(selectedCategory) ? selectedCategory : nil
     }
 
     private struct IndexedIssue {
