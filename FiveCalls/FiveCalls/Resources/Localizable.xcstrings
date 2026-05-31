@@ -49,6 +49,17 @@
     "About" : {
       "comment" : "AboutSheet navigation title\nDashboard menu item"
     },
+    "All" : {
+      "comment" : "Category filter all pill label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All"
+          }
+        }
+      }
+    },
     "An error occured trying to find your location" : {
       "comment" : "Default location error message"
     },
@@ -238,6 +249,17 @@
     },
     "Instagram" : {
 
+    },
+    "Issue category filter" : {
+      "comment" : "Category filter accessibility label",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Issue category filter"
+          }
+        }
+      }
     },
     "Keep 5 Calls free and up-to-date" : {
       "comment" : "Support 5 Calls subtitle text"
