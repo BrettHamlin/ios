@@ -50,7 +50,16 @@
       "comment" : "AboutSheet navigation title\nDashboard menu item"
     },
     "All" : {
-      "comment" : "CategoryFilterBar all categories option"
+      "comment" : "CategoryFilterBar all categories option",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All"
+          }
+        }
+      }
     },
     "An error occured trying to find your location" : {
       "comment" : "Default location error message"

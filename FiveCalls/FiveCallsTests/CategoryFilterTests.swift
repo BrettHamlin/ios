@@ -139,7 +139,54 @@ final class CategoryFilterTests: XCTestCase {
             selectedCategory: nil
         )
 
+        XCTAssertEqual(result, issues)
         XCTAssertEqual(result.map(\.id), [1, 2, 3])
+    }
+
+    @MainActor
+    func testIssuesListWithAllSelectionFeedsUnfilteredIssuesAndPreservesSelectionBinding() {
+        //harness:criterion=c-existing-navigation-link-preserved
+        let issues = [
+            makeIssue(id: 1, name: "First", categories: [budget]),
+            makeIssue(id: 2, name: "Second", categories: [environment]),
+            makeIssue(id: 3, name: "Third", categories: [health]),
+        ]
+        let state = AppState()
+        state.issues = issues
+        let store = Store(state: state, middlewares: [])
+        var selectedIssue: Issue? = issues[1]
+        var showAllIssues = true
+        var searchText = ""
+        var selectedCategory: FiveCalls.Category? = nil
+
+        let list = IssuesList(
+            store: store,
+            selectedIssue: Binding(
+                get: { selectedIssue },
+                set: { selectedIssue = $0 }
+            ),
+            showAllIssues: Binding(
+                get: { showAllIssues },
+                set: { showAllIssues = $0 }
+            ),
+            searchText: Binding(
+                get: { searchText },
+                set: { searchText = $0 }
+            ),
+            selectedCategory: Binding(
+                get: { selectedCategory },
+                set: { selectedCategory = $0 }
+            )
+        )
+        let nodes = hostedAccessibilityNodes(for: list, size: CGSize(width: 390, height: 700))
+        let labels = nodes.map(\.label)
+
+        XCTAssertEqual(list.allIssues, issues)
+        XCTAssertTrue(labels.contains { $0.contains("First") })
+        XCTAssertTrue(labels.contains { $0.contains("Second") })
+        XCTAssertTrue(labels.contains { $0.contains("Third") })
+        XCTAssertEqual(selectedIssue, issues[1])
+        XCTAssertNil(selectedCategory)
     }
 
     func testSelectedCategoryReturnsOnlyIssuesWithThatCategory() {

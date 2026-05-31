@@ -27,14 +27,18 @@ struct CategoryFilterBar: View {
                             .frame(minWidth: 44, minHeight: 44)
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: 44, minHeight: 44)
                     .background(isSelected(option) ? Color.fivecallsDarkBlue : Color(.systemGray6))
                     .clipShape(Capsule())
+                    .contentShape(Capsule())
+                    .accessibilityElement(children: .ignore)
                     .accessibilityLabel(accessibilityLabel(for: option))
                     .accessibilityAddTraits(isSelected(option) ? .isSelected : [])
                 }
             }
             .padding(.horizontal, 16)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(
             String(
                 localized: "Category filter control accessibility label",
