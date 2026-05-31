@@ -4,9 +4,9 @@ import XCTest
 @testable import FiveCalls
 
 final class DashboardIssueQueryTests: XCTestCase {
-    private let environment = Category(name: "Environment")
-    private let health = Category(name: "Health")
-    private let taxes = Category(name: "Taxes")
+    private let environment = FiveCalls.Category(name: "Environment")
+    private let health = FiveCalls.Category(name: "Health")
+    private let taxes = FiveCalls.Category(name: "Taxes")
 
     //harness:criterion=c-dashboard-issue-query-helper-exists,c-query-search-gte3-all-issues-then-category,c-query-tests-cover-all-six-branches
     func testSearchWithSelectedCategorySearchesAllIssuesBeforeCategoryFilter() {
@@ -149,12 +149,35 @@ final class DashboardIssueQueryTests: XCTestCase {
     //harness:criterion=c-chip-list-sort-order,c-chip-row-all-chip-always-first,c-query-tests-cover-dedup-and-sort
     func testCategoryChipsPlaceAllFirstThenSortCategoriesCaseInsensitively() {
         let chips = DashboardIssueQuery.chips(
-            from: [Category(name: "zebra"), Category(name: "apple"), Category(name: "Mango"), Category(name: "apple")],
+            from: [
+                FiveCalls.Category(name: "zebra"),
+                FiveCalls.Category(name: "apple"),
+                FiveCalls.Category(name: "Mango"),
+                FiveCalls.Category(name: "apple"),
+            ],
             allLabel: "All"
         )
 
         XCTAssertNil(chips.first?.category)
         XCTAssertEqual(chips.map(\.label), ["All", "apple", "Mango", "zebra"])
+    }
+
+    //harness:criterion=c-chip-list-deduplication,c-chip-list-sort-order,c-chip-row-all-chip-always-first,c-query-tests-cover-dedup-and-sort
+    func testLoadedIssueChipSourcePlacesAllFirstThenUniqueSortedCategories() {
+        let aardvark = FiveCalls.Category(name: "Aardvark")
+        let zebra = FiveCalls.Category(name: "zebra")
+        let mango = FiveCalls.Category(name: "Mango")
+        let issues = [
+            issue(id: 1, categories: [zebra]),
+            issue(id: 2, categories: [aardvark]),
+            issue(id: 3, categories: [mango]),
+            issue(id: 4, categories: [aardvark]),
+        ]
+
+        let chips = DashboardIssueQuery.chips(from: issues, allLabel: "All")
+
+        XCTAssertEqual(chips.map(\.label), ["All", "Aardvark", "Mango", "zebra"])
+        XCTAssertEqual(chips.compactMap(\.category), [aardvark, mango, zebra])
     }
 
     //harness:criterion=c-selected-category-reset-on-refresh,c-query-tests-cover-reset-on-refresh
@@ -194,7 +217,7 @@ final class DashboardIssueQueryTests: XCTestCase {
     //harness:criterion=c-chip-row-all-chip-selected-by-default
     func testNilSelectedCategoryRepresentsSelectedAllChip() {
         let chips = DashboardIssueQuery.chips(from: [environment], allLabel: "All")
-        let selectedCategory: Category? = nil
+        let selectedCategory: FiveCalls.Category? = nil
 
         XCTAssertEqual(chips.first?.label, "All")
         XCTAssertEqual(chips.first?.category, selectedCategory)
@@ -204,12 +227,27 @@ final class DashboardIssueQueryTests: XCTestCase {
     //harness:criterion=c-chip-row-category-chip-selected-state
     func testSelectedCategoryMatchesOnlyThatCategoryChip() {
         let chips = DashboardIssueQuery.chips(from: [environment, health], allLabel: "All")
-        let selectedCategory: Category? = health
+        let selectedCategory: FiveCalls.Category? = health
 
         let selectedLabels = chips.filter { $0.category == selectedCategory }.map(\.label)
 
         XCTAssertEqual(selectedLabels, ["Health"])
         XCTAssertNotEqual(chips.first?.category, selectedCategory)
+    }
+
+    //harness:criterion=c-chip-row-tapping-category-sets-selected,c-chip-row-tapping-all-clears-selected
+    func testChipSelectionTargetsSetCategoryAndAllClearsSelection() throws {
+        let chips = DashboardIssueQuery.chips(from: [environment, health], allLabel: "All")
+        let allChip = try XCTUnwrap(chips.first { $0.category == nil })
+        let environmentChip = try XCTUnwrap(chips.first { $0.category == environment })
+
+        var selectedCategory: FiveCalls.Category?
+
+        selectedCategory = environmentChip.category
+        XCTAssertEqual(selectedCategory, environment)
+
+        selectedCategory = allChip.category
+        XCTAssertNil(selectedCategory)
     }
 
     //harness:criterion=c-grouped-mode-filters-to-selected-category-section
@@ -290,7 +328,7 @@ final class DashboardIssueQueryTests: XCTestCase {
     private func issue(
         id: Int,
         name: String? = nil,
-        categories: [Category],
+        categories: [FiveCalls.Category],
         active: Bool = true,
         meta: String = "",
         reason: String = "Call Congress about this issue",

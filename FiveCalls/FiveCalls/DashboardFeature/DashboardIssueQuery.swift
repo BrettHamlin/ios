@@ -7,7 +7,7 @@ struct DashboardCategoryChip: Identifiable, Equatable {
     let label: String
 
     var id: String {
-        category?.name ?? "all"
+        category.map { "category:\($0.name)" } ?? "all"
     }
 
     var accessibilityLabel: String {
