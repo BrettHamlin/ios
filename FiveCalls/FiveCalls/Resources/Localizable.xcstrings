@@ -49,6 +49,9 @@
     "About" : {
       "comment" : "AboutSheet navigation title\nDashboard menu item"
     },
+    "All" : {
+      "comment" : "CategoryFilterBar all categories option"
+    },
     "An error occured trying to find your location" : {
       "comment" : "Default location error message"
     },
@@ -113,6 +116,42 @@
     },
     "Calls on this topic" : {
 
+    },
+    "Category filter all option" : {
+      "comment" : "CategoryFilterBar all categories option",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "All"
+          }
+        }
+      }
+    },
+    "Category filter control accessibility label" : {
+      "comment" : "CategoryFilterBar control accessibility label",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Issue category filter"
+          }
+        }
+      }
+    },
+    "Category filter option accessibility label" : {
+      "comment" : "CategoryFilterBar chip accessibility label",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Filter by %@"
+          }
+        }
+      }
     },
     "Can't send mail" : {
       "comment" : "AboutSheet alert title"

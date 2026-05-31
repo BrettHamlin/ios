@@ -11,11 +11,16 @@ struct Dashboard: View {
 
     @State var showAllIssues = false
     @State var searchText = ""
+    @State var selectedCategory: Category?
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     func usingRegularFonts() -> Bool {
         dynamicTypeSize < DynamicTypeSize.accessibility3
+    }
+
+    private var loadedCategoryNames: Set<String> {
+        IssueFilterHelper.categoryNames(from: store.state.issues)
     }
 
     var body: some View {
@@ -57,7 +62,15 @@ struct Dashboard: View {
 
             SearchBar(searchText: $searchText)
 
-            IssuesList(store: store, selectedIssue: $selectedIssue, showAllIssues: $showAllIssues, searchText: $searchText)
+            CategoryFilterBar(issues: store.state.issues, selectedCategory: $selectedCategory)
+
+            IssuesList(
+                store: store,
+                selectedIssue: $selectedIssue,
+                showAllIssues: $showAllIssues,
+                searchText: $searchText,
+                selectedCategory: $selectedCategory
+            )
         }
         .navigationBarHidden(true)
         .onAppear {
@@ -80,7 +93,19 @@ struct Dashboard: View {
                 selectedIssue = store.state.issues.first(where: { $0.slug == selectedIssueUrl.lastPathComponent })
                 self.selectedIssueUrl = nil
             }
+
+            validateSelectedCategory()
         }
+        .onChange(of: loadedCategoryNames) {
+            validateSelectedCategory()
+        }
+    }
+
+    private func validateSelectedCategory() {
+        selectedCategory = IssueFilterHelper.validatedSelectedCategory(
+            selectedCategory,
+            issues: store.state.issues
+        )
     }
 }
 
@@ -130,63 +155,20 @@ struct IssuesList: View {
     @Binding var selectedIssue: Issue?
     @Binding var showAllIssues: Bool
     @Binding var searchText: String
+    @Binding var selectedCategory: Category?
 
     var isSearching: Bool {
         searchText.count >= 3
     }
 
     var allIssues: [Issue] {
-        let baseIssues: [Issue]
-
-        if isSearching {
-            // When searching, search all issues regardless of active status
-            let filteredIssues = store.state.issues.filter { issue in
-                issue.name.localizedCaseInsensitiveContains(searchText) ||
-                    issue.reason.localizedCaseInsensitiveContains(searchText) ||
-                    issue.script.localizedCaseInsensitiveContains(searchText) ||
-                    issue.slug.localizedCaseInsensitiveContains(searchText) ||
-                    issue.categories.contains { category in
-                        category.name.localizedCaseInsensitiveContains(searchText)
-                    }
-            }
-
-            // Sort results with name matches first
-            baseIssues = filteredIssues.sorted { issue1, issue2 in
-                let issue1NameMatch = issue1.name.localizedCaseInsensitiveContains(searchText)
-                let issue2NameMatch = issue2.name.localizedCaseInsensitiveContains(searchText)
-
-                if issue1NameMatch, !issue2NameMatch {
-                    return true // issue1 comes first
-                } else if !issue1NameMatch, issue2NameMatch {
-                    return false // issue2 comes first
-                } else {
-                    return false
-                }
-            }
-        } else if showAllIssues {
-            baseIssues = store.state.issues
-        } else {
-            baseIssues = store.state.issues.filter(\.active)
-        }
-
-        // Prioritize state-specific issues at the top
-        return baseIssues.sorted { issue1, issue2 in
-            let issue1IsState = issue1.isStateSpecific
-            let issue2IsState = issue2.isStateSpecific
-
-            if issue1IsState, !issue2IsState {
-                return true // State-specific issues come first
-            } else if !issue1IsState, issue2IsState {
-                return false // Non-state issues come after
-            } else if issue1IsState, issue2IsState {
-                // Both are state-specific, sort by createdAt (newest first)
-                // TODO: Replace with sort field when available
-                return issue1.createdAt > issue2.createdAt
-            } else {
-                // Both are non-state, maintain original order (no sorting)
-                return false
-            }
-        }
+        IssueFilterHelper.filteredIssues(
+            from: store.state.issues,
+            showAllIssues: showAllIssues,
+            isSearching: isSearching,
+            searchText: searchText,
+            selectedCategory: selectedCategory
+        )
     }
 
     private var categorizedIssues: [CategorizedIssuesViewModel] {

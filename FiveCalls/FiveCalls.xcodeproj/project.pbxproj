@@ -11,6 +11,7 @@
 		2258E3332E54E3BF0032F1C5 /* GET-v1-issue-script.json in Resources */ = {isa = PBXBuildFile; fileRef = 2258E3322E54E3BD0032F1C5 /* GET-v1-issue-script.json */; };
 		2258E3342E54E3BF0032F1C5 /* GET-v1-issue-script.json in Resources */ = {isa = PBXBuildFile; fileRef = 2258E3322E54E3BD0032F1C5 /* GET-v1-issue-script.json */; };
 		2258E3382E54E40A0032F1C5 /* CustomizedScriptsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2258E3372E54E40A0032F1C5 /* CustomizedScriptsTests.swift */; };
+		3B4141AE2DDC9F1500C4F001 /* CategoryFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4141AD2DDC9F1500C4F001 /* CategoryFilterTests.swift */; };
 		42881B27103F3B812251890B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97792E8AE44B5A2E12357E88 /* AVFoundation.framework */; };
 		4F07B2382B45E5ED00C575DF /* AcknowList in Frameworks */ = {isa = PBXBuildFile; productRef = 4F07B2372B45E5ED00C575DF /* AcknowList */; };
 		4F07B23E2B45F25E00C575DF /* Package.resolved in Resources */ = {isa = PBXBuildFile; fileRef = 4F07B23D2B45F25E00C575DF /* Package.resolved */; };
@@ -93,6 +94,7 @@
 		097A879D4BFD5431EF684F89 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		2258E3322E54E3BD0032F1C5 /* GET-v1-issue-script.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "GET-v1-issue-script.json"; sourceTree = "<group>"; };
 		2258E3372E54E40A0032F1C5 /* CustomizedScriptsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizedScriptsTests.swift; sourceTree = "<group>"; };
+		3B4141AD2DDC9F1500C4F001 /* CategoryFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryFilterTests.swift; sourceTree = "<group>"; };
 		49B7C84D8023A9154688796F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		4F07B23D2B45F25E00C575DF /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = FiveCalls.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = "<group>"; };
 		4F2178742B488CD70032D592 /* StoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreTests.swift; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				B502805F1E478BC200749ED7 /* Info.plist */,
+				3B4141AD2DDC9F1500C4F001 /* CategoryFilterTests.swift */,
 				D0D8A8402E7A6F4D006B0B2E /* IssueDetailWarningTests.swift */,
 				D0BC8D2D2CFC23EA00560EDA /* AppStateTests.swift */,
 				B50280671E478BF500749ED7 /* ContactLogsTests.swift */,
@@ -567,6 +570,7 @@
 				D0BC8D2E2CFC23EA00560EDA /* AppStateTests.swift in Sources */,
 				D0E042662B47D06700D22647 /* IssueTests.swift in Sources */,
 				2258E3382E54E40A0032F1C5 /* CustomizedScriptsTests.swift in Sources */,
+				3B4141AE2DDC9F1500C4F001 /* CategoryFilterTests.swift in Sources */,
 				4F2178752B488CD70032D592 /* StoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
