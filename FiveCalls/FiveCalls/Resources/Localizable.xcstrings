@@ -49,6 +49,9 @@
     "About" : {
       "comment" : "AboutSheet navigation title\nDashboard menu item"
     },
+    "All" : {
+      "comment" : "Dashboard category filter chip for all categories"
+    },
     "An error occured trying to find your location" : {
       "comment" : "Default location error message"
     },
@@ -364,6 +367,12 @@
     },
     "Search my location" : {
       "comment" : "LocationSheet search accessibility label"
+    },
+    "Show %@ issues" : {
+      "comment" : "Dashboard category chip accessibility label"
+    },
+    "Show all issue categories" : {
+      "comment" : "Dashboard all category chip accessibility label"
     },
     "Secretary of State Grouping" : {
       "comment" : "Office Holder grouping description",

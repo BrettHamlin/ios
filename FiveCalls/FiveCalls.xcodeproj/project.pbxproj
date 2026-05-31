@@ -42,6 +42,7 @@
 		D0BA59AB1F9546510069DA58 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BA59AA1F9546510069DA58 /* NotificationService.swift */; };
 		D0BA59AF1F9546510069DA58 /* NotificationsService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D0BA59A81F9546510069DA58 /* NotificationsService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D0BC8D2E2CFC23EA00560EDA /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0BC8D2D2CFC23EA00560EDA /* AppStateTests.swift */; };
+		D0CA7E022E88000100C0FFEE /* IssueCategoryFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CA7E012E88000100C0FFEE /* IssueCategoryFilterTests.swift */; };
 		D0CFF333284A835F0082693E /* OneSignal in Frameworks */ = {isa = PBXBuildFile; productRef = D0CFF332284A835F0082693E /* OneSignal */; };
 		D0CFF335284A835F0082693E /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = D0CFF334284A835F0082693E /* OneSignalExtension */; };
 		D0D169CB23BD990C00C695B7 /* GET-v1-issues.json in Resources */ = {isa = PBXBuildFile; fileRef = D0D169CA23BD990C00C695B7 /* GET-v1-issues.json */; };
@@ -128,6 +129,7 @@
 		D0BA59AC1F9546510069DA58 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D0BA59B61F9547080069DA58 /* NotificationsService.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NotificationsService.entitlements; sourceTree = "<group>"; };
 		D0BC8D2D2CFC23EA00560EDA /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		D0CA7E012E88000100C0FFEE /* IssueCategoryFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueCategoryFilterTests.swift; sourceTree = "<group>"; };
 		D0D169CA23BD990C00C695B7 /* GET-v1-issues.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "GET-v1-issues.json"; sourceTree = "<group>"; };
 		D0D169CC23BD999C00C695B7 /* GET-v1-reps.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "GET-v1-reps.json"; sourceTree = "<group>"; };
 		D0D8A8402E7A6F4D006B0B2E /* IssueDetailWarningTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueDetailWarningTests.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 				B50280671E478BF500749ED7 /* ContactLogsTests.swift */,
 				D0176E8A2B3343150090E6B7 /* ContactParsingTest.swift */,
 				D05EDAF52B3282F500FD94BD /* IssueParsingTest.swift */,
+				D0CA7E012E88000100C0FFEE /* IssueCategoryFilterTests.swift */,
 				D0E042652B47D06700D22647 /* IssueTests.swift */,
 				4F3A572D2B598203009D4616 /* LocationSheetTests.swift */,
 				D0176E912B33457D0090E6B7 /* ReportParsingTest.swift */,
@@ -565,6 +568,7 @@
 				D0176E8B2B3343150090E6B7 /* ContactParsingTest.swift in Sources */,
 				4F3A572B2B597C8E009D4616 /* UserLocationTests.swift in Sources */,
 				D0BC8D2E2CFC23EA00560EDA /* AppStateTests.swift in Sources */,
+				D0CA7E022E88000100C0FFEE /* IssueCategoryFilterTests.swift in Sources */,
 				D0E042662B47D06700D22647 /* IssueTests.swift in Sources */,
 				2258E3382E54E40A0032F1C5 /* CustomizedScriptsTests.swift in Sources */,
 				4F2178752B488CD70032D592 /* StoreTests.swift in Sources */,
