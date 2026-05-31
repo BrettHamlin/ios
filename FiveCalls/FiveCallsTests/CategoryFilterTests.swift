@@ -36,6 +36,31 @@ final class CategoryFilterTests: XCTestCase {
     }
 
     @MainActor
+    func testCategoryFilterBarRendersUniqueSortedChipsFromLoadedIssues() throws {
+        //harness:criterion=c-category-filter-bar-renders,c-category-filter-bar-sorted
+        let issues = [
+            makeIssue(id: 1, categories: [immigration]),
+            makeIssue(id: 2, categories: [environment, budget]),
+            makeIssue(id: 3, categories: [immigration, budget]),
+        ]
+        let bar = CategoryFilterBar(
+            issues: issues,
+            selectedCategory: .constant(nil)
+        )
+
+        let chipLabels = hostedAccessibilityNodes(for: bar)
+            .map(\.label)
+            .filter { $0.hasPrefix("Filter by ") }
+
+        XCTAssertEqual(chipLabels, [
+            "Filter by All",
+            "Filter by Budget",
+            "Filter by Environment",
+            "Filter by Immigration",
+        ])
+    }
+
+    @MainActor
     func testCategoryFilterBarStartsWithAllSelection() throws {
         //harness:criterion=c-category-filter-bar-all-default,c-category-filter-state-local
         var selectedCategory: FiveCalls.Category? = nil

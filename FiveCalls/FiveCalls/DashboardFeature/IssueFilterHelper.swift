@@ -28,7 +28,7 @@ internal enum CategoryFilterOption: Equatable, Hashable, Identifiable {
         switch self {
         case .all:
             return String(
-                localized: "Category filter all option",
+                localized: "All",
                 defaultValue: "All",
                 comment: "CategoryFilterBar all categories option"
             )
@@ -40,7 +40,8 @@ internal enum CategoryFilterOption: Equatable, Hashable, Identifiable {
 
 internal enum IssueFilterHelper {
     static func categoryOptions(from issues: [Issue]) -> [CategoryFilterOption] {
-        let categories = Set(issues.flatMap(\.categories)).sorted()
+        let categories = Set(issues.flatMap(\.categories))
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         return [.all] + categories.map { .category($0) }
     }
 
